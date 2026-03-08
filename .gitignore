@@ -1,0 +1,45 @@
+## Dependencies
+node_modules/
+**/node_modules/
+
+## Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+## Environment files
+.env
+.env.*
+!.env.example
+!.env.sample
+
+## Next.js / frontend build artifacts
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+
+## Python artifacts
+__pycache__/
+*.py[cod]
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+## OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+## Misc
+tmp/
+temp/

@@ -1,0 +1,1229 @@
+{
+  "name": "Product-to-UGC — Vertex AI v7 (Description + All Fixes)",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "=**// ROLE & GOAL //**\nYou are an expert Casting Director and Consumer Psychologist. Your entire focus is on understanding people. Your sole task is to analyze the product in the provided image and generate a single, highly-detailed profile of the ideal person to promote it in a User-Generated Content (UGC) ad.\n\nThe final output must ONLY be a description of this person. Do NOT create an ad script, ad concepts, or hooks. Your deliverable is a rich character profile that makes this person feel real, believable, and perfectly suited to be a trusted advocate for the product.\n\n**// INPUT //**\n\nProduct Name: '{{ $('Edit Fields9').item.json.product_name }}'\nTarget Language/Region: {{ $('Language & Region Config').item.json.language_instruction }}\nCreator Location Style: {{ $('Language & Region Config').item.json.persona_location_hint }}\n[Product image is attached as binary input to this node]\n**// REQUIRED OUTPUT STRUCTURE //**\nPlease generate the persona profile using the following five-part structure. Be as descriptive and specific as possible within each section.\n\n**I. Core Identity**\n* **Name:**\n* **Age:** (Provide a specific age, not a range)\n* **Sex/Gender:**\n* **Location:** (e.g., \"A trendy suburb of a major tech city like Austin,\" \"A small, artsy town in the Pacific Northwest\")\n* **Occupation:** (Be specific. e.g., \"Pediatric Nurse,\" \"Freelance Graphic Designer,\" \"High School Chemistry Teacher,\" \"Manages a local coffee shop\")\n\n**II. Physical Appearance & Personal Style (The \"Look\")**\n* **General Appearance:** Describe their face, build, and overall physical presence. What is the first impression they give off?\n* **Hair:** Color, style, and typical state (e.g., \"Effortless, shoulder-length blonde hair, often tied back in a messy bun,\" \"A sharp, well-maintained short haircut\").\n* **Clothing Aesthetic:** What is their go-to style? Use descriptive labels. (e.g., \"Comfort-first athleisure,\" \"Curated vintage and thrifted pieces,\" \"Modern minimalist with neutral tones,\" \"Practical workwear like Carhartt and denim\").\n* **Signature Details:** Are there any small, defining features? (e.g., \"Always wears a simple gold necklace,\" \"Has a friendly sprinkle of freckles across their nose,\" \"Wears distinctive, thick-rimmed glasses\").\n\n**III. Personality & Communication (The \"Vibe\")**\n* **Key Personality Traits:** List 5-7 core adjectives that define them (e.g., Pragmatic, witty, nurturing, resourceful, slightly introverted, highly observant).\n* **Demeanor & Energy Level:** How do they carry themselves and interact with the world? (e.g., \"Calm and deliberate; they think before they speak,\" \"High-energy and bubbly, but not in an annoying way,\" \"Down-to-earth and very approachable\").\n* **Communication Style:** How do they talk? (e.g., \"Speaks clearly and concisely, like a trusted expert,\" \"Tells stories with a dry sense of humor,\" \"Talks like a close friend giving you honest advice, uses 'you guys' a lot\").\n\n**IV. Lifestyle & Worldview (The \"Context\")**\n* **Hobbies & Interests:** What do they do in their free time? (e.g., \"Listens to true-crime podcasts, tends to an impressive collection of houseplants, weekend hiking\").\n* **Values & Priorities:** What is most important to them in life? (e.g., \"Values efficiency and finding 'the best way' to do things,\" \"Prioritizes work-life balance and mental well-being,\" \"Believes in buying fewer, higher-quality items\").\n* **Daily Frustrations / Pain Points:** What are the small, recurring annoyances in their life? (This should subtly connect to the product's category without mentioning the product itself). (e.g., \"Hates feeling disorganized,\" \"Is always looking for ways to save 10 minutes in their morning routine,\" \"Gets overwhelmed by clutter\").\n* **Home Environment:** What does their personal space look like? (e.g., \"Clean, bright, and organized with IKEA and West Elm furniture,\" \"Cozy, a bit cluttered, with lots of books and warm lighting\").\n\n**V. The \"Why\": Persona Justification**\n* **Core Credibility:** In one or two sentences, explain the single most important reason why an audience would instantly trust *this specific person's* opinion on this product. (e.g., \"As a busy nurse, her recommendation for anything related to convenience and self-care feels earned and authentic,\" or \"His obsession with product design and efficiency makes him a credible source for any gadget he endorses.\")",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        2048,
+        208
+      ],
+      "id": "bbe227c0-eff7-4b66-83ac-3bbc903a839a",
+      "name": "Analyze an image4",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 3,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "78Ua8CPoPmRPaCQc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "796c02ea-66be-484c-a333-be4fffbe17db",
+              "name": "prompt",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2336,
+        208
+      ],
+      "id": "5d0f3edc-ae58-4c2a-a3a6-38ea62b2cfa8",
+      "name": "set_model_details4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c2bbb98-c6e4-4339-971a-2d6487f6bd29",
+              "name": "prompt",
+              "value": "=You are an expert UGC video director specializing in hyper-realistic 8-second videos for Google Veo 3.1. Your job is to make AI-generated video indistinguishable from a real person filming themselves.\n\nCRITICAL CONSTRAINT: Veo 3.1 generates exactly 8 seconds. Every script MUST feel COMPLETE at exactly 8 seconds — not cut off, not rushed.\n\n---\n\n**THE 8-SECOND UGC STRUCTURE:**\n- 0-1s: HOOK — Creator already mid-action (never starting from still)\n- 1-5s: CORE — One benefit, shown naturally while using the product\n- 5-7s: PAYOFF — Visible result OR genuine satisfied reaction\n- 7-8s: CLOSE — Intentional natural ending (see techniques below)\n\n---\n\n**ENDING TECHNIQUES (pick one — most important for realism):**\n- Camera slowly drifts down as creator looks at product, clip fades\n- Creator half-laughs, shakes head slightly, clip ends mid-expression\n- Product held up close to lens, slight refocus blur, then clip ends\n- Creator sets product down on surface, hand lingers, camera stills\n- Creator looks directly into lens for 1 beat, small nod, clip ends\n\n---\n\n**DIALOGUE RULE: Max 18 words. Natural pace = ~18 words in 8 seconds.**\nInclude: false starts, filler words (\"like\", \"okay so\", \"wait—\", \"no literally\"), trailing off naturally. Never scripted-sounding.\n\n---\n\n**REALISM RULES FOR VEO_PROMPT (this is what makes or breaks quality):**\n\nCAMERA:\n- Always vertical 9:16, shot on a phone\n- Slight handheld micro-shake throughout — never locked off\n- Occasional slight rack focus or exposure adjustment mid-shot\n- Camera arm visible at edge of frame is fine — adds authenticity\n- Natural zoom drift (not intentional zoom — just hand moving slightly)\n\nLIGHTING:\n- Always name a specific light source: \"soft natural light from a window to the left\", \"warm overhead kitchen light\", \"cool bathroom vanity light\", \"late afternoon golden light through blinds\"\n- Avoid: \"good lighting\", \"well-lit\" — these make it look like a studio\n\nENVIRONMENT:\n- Name specific background details: \"cluttered kitchen counter with dishes visible\", \"unmade bed in background\", \"bathroom mirror slightly fogged\", \"wooden desk with laptop half-open\"\n- Background should feel lived-in, not clean or staged\n\nCREATOR BEHAVIOR (micro-actions = realism):\n- Include one imperfection: slightly fumbles product, adjusts grip, glances away briefly, tucks hair, shifts weight\n- Eyes: occasionally glances at camera then back at product — not constant eye contact\n- Hands: product held slightly imperfectly, not centered for camera\n\nAUDIO (Veo 3.1 generates audio — use it):\n- Name specific ambient sounds: \"faint hum of AC\", \"distant street noise\", \"dog barking once in background\", \"notification sound ignored mid-clip\"\n- Creator's voice should sound like a voice note, not a voiceover\n- Include breath sounds, slight mouth sounds before speaking\n\nNEVER USE these words in VEO_PROMPT — they create polished/ad look:\n\"showcase\", \"demonstrate\", \"reveal\", \"perfectly\", \"seamlessly\", \"highlight\", \"product shot\", \"brand\", \"advertisement\"\n\n---\n\n**RAI SAFETY RULES — MUST FOLLOW OR VIDEO WILL BE BLOCKED:**\n- Creator: generic person, no specific ethnicity, age range, or physical traits\n- Clothing: casual only — hoodie, t-shirt, oversized shirt\n- No revealing clothing, no violence, no dangerous situations\n- No real brand logos visible anywhere in frame\n- Keep all interactions wholesome and natural\n\n---\n\nCreator Profile: {{ $node['set_model_details4'].json.prompt }}\nProduct Name: {{ $('Edit Fields9').item.json.product_name }}\nProduct Description: {{ $('Edit Fields9').item.json.description }}\nLanguage/Dialogue Style: {{ $('Language & Region Config').item.json.language_instruction }}\nProduct Image: [attached as binary]\n\n---\n\n**OUTPUT EXACTLY 3 SCRIPTS — NO OTHER TEXT:**\n\nSCRIPT 1: [Hook angle - 4 words max]\nENERGY: [one word: Excited / Chill / Curious / Satisfying / Shocked]\nDIALOGUE: \"[max 18 words — include fillers, natural imperfections, trailing off]\"\nVEO_PROMPT: [120-160 word paragraph. Must include: specific light source, specific background detail, one creator micro-imperfection, exact camera behavior, product interaction with texture/weight described, specific ambient audio, and exact ending moment. Written as a direct Veo 3.1 generation prompt. No brand logos. End with: \"Audio: [specific sounds]. Video ends with [exact ending action] — clip ends naturally, not a cut.\"]\n\nSCRIPT 2: [Hook angle - 4 words max]\nENERGY: [one word]\nDIALOGUE: \"[max 18 words]\"\nVEO_PROMPT: [120-160 word Veo prompt — different location and lighting from Script 1, different creator micro-imperfection, different ending technique]\n\nSCRIPT 3: [Hook angle - 4 words max]\nENERGY: [one word]\nDIALOGUE: \"[max 18 words]\"\nVEO_PROMPT: [120-160 word Veo prompt — different location and lighting from Scripts 1 and 2, different ending technique]",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        512
+      ],
+      "id": "0f7a59a0-ee3e-40e0-a790-ffbcaa0fcd30",
+      "name": "set_build_video_prompts4"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "file",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        208
+      ],
+      "id": "a4c052bf-2e00-4a42-95ea-a1cddd929678",
+      "name": "convert_product_to_base1"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1392,
+        208
+      ],
+      "id": "57c917a3-09e4-422d-9610-e96317795766",
+      "name": "convert_product_to_image4"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"title\": \"Extracted Prompts\",\n  \"description\": \"A schema designed to hold a list of individual prompts that have been extracted from a larger body of text. Use this to format the extracted prompts.\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"prompts\": {\n      \"type\": \"array\",\n      \"description\": \"An array where each element is a single, distinct prompt string that was extracted from the user's input.\",\n      \"items\": {\n        \"type\": \"string\",\n        \"description\": \"A single prompt statement.\"\n      }\n    }\n  },\n  \"required\": [\n    \"prompts\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1808,
+        736
+      ],
+      "id": "1e9bdab4-48d0-4469-a9c9-4e334b6ba3bf",
+      "name": "prompts-parser4"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.prompts",
+        "options": {
+          "destinationFieldName": "prompt"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        512
+      ],
+      "id": "b0429601-ebd7-4ac6-b722-51bd3b12b71e",
+      "name": "split_prompts4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [\n      { \"text\": \"Take the design, layout, and style of [Image A] exactly as it is, and seamlessly adapt it into the aspect ratio of [Image B]. Maintain all the visual elements, proportions, and composition of [Image A], but expand, crop, or extend the background naturally so that the final image perfectly matches the aspect ratio and dimensions of [Image B]. Do not distort or stretch any elements—use intelligent background extension, framing, or subtle composition adjustments to preserve the original design integrity while filling the new canvas size.\" },  \n      {\n        \"inline_data\": {\n          \"mime_type\": \"image/png\",\n          \"data\": \"{{ $('convert_product_to_base1').item.json.data }}\"\n        }\n      },\n{\n        \"inline_data\": {\n          \"mime_type\": \"image/png\",\n          \"data\": \"iVBORw0KGgoAAAANSUhEUgAAAkAAAAQACAIAAACGcHE3AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAExGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI1LTEwLTA3PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkV4dElkPjBmODViMDkwLTNmYjgtNGEzYi1iMjlmLTdjN2Y4MzJjNzY0MDwvQXR0cmliOkV4dElkPgogICAgIDxBdHRyaWI6RmJJZD41MjUyNjU5MTQxNzk1ODA8L0F0dHJpYjpGYklkPgogICAgIDxBdHRyaWI6VG91Y2hUeXBlPjI8L0F0dHJpYjpUb3VjaFR5cGU+CiAgICA8L3JkZjpsaT4KICAgPC9yZGY6U2VxPgogIDwvQXR0cmliOkFkcz4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6ZGM9J2h0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvJz4KICA8ZGM6dGl0bGU+CiAgIDxyZGY6QWx0PgogICAgPHJkZjpsaSB4bWw6bGFuZz0neC1kZWZhdWx0Jz5VbnRpdGxlZCAoNTc2IHggMTAyNCBweCkgLSAxPC9yZGY6bGk+CiAgIDwvcmRmOkFsdD4KICA8L2RjOnRpdGxlPgogPC9yZGY6RGVzY3JpcHRpb24+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpwZGY9J2h0dHA6Ly9ucy5hZG9iZS5jb20vcGRmLzEuMy8nPgogIDxwZGY6QXV0aG9yPkx1Y2FzIFd5bGFuZDwvcGRmOkF1dGhvcj4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6eG1wPSdodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvJz4KICA8eG1wOkNyZWF0b3JUb29sPkNhbnZhIChSZW5kZXJlcikgZG9jPURBRzFIaVRBMFJRIHVzZXI9VUFGdmota0ZsRTQgYnJhbmQ9QkFGdmp5M2RONVEgdGVtcGxhdGU9PC94bXA6Q3JlYXRvclRvb2w+CiA8L3JkZjpEZXNjcmlwdGlvbj4KPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KPD94cGFja2V0IGVuZD0ncic/PvToRdYAAA8ZSURBVHic7NUxDQAgEMBAwL/in/DAQprcKejWPTMLAGrO7wAAeGFgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkGRgACQZGABJBgZAkoEBkHQBAAD//+zVAQkAAACAoP+v2xHoCQUGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAQAA///s1QEJAAAAgKD/r9sR6AkFBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwEAAP//7NUBCQAAAICg/6/bEegJBQbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWAoAAP//7NUBCQAAAICg/6/bEegJBQbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsBAAD//+3VAQkAAACAoP+v2xHoCQUGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAgNgSWAALAkMgCWBAbAkMACWBAbAksAAWBIYAEsCA2BJYAAsCQyAJYEBsCQwAJYEBsCSwABYEhgASwIDYElgACwJDIAlgQGwJDAAlgQGwJLAAFgSGABLAbB5Cu46XMHWAAAAAElFTkSuQmCC\"\n        }\n      }\n    ]\n  }]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        944,
+        880
+      ],
+      "id": "fd548171-f4a4-4736-9162-0b36a3dc9436",
+      "name": "generate_frame4",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "78Ua8CPoPmRPaCQc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "524da01b-f8b9-4c2c-9e28-319455903e4d",
+              "name": "=result",
+              "value": "={{ $json.candidates[0].content.parts.filter(item => item.inlineData).first().inlineData.data }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        880
+      ],
+      "id": "e3a09cb1-6fda-4c10-8019-823c7f46d974",
+      "name": "set_frame_result4"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "result",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1536,
+        880
+      ],
+      "id": "4c171959-e145-421b-9f61-dcf56bc4debf",
+      "name": "get_frame_image4"
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "width": 720,
+        "height": 1280,
+        "resizeOption": "ignoreAspectRatio",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        1776,
+        880
+      ],
+      "id": "55930d34-a2ee-4759-8bc0-dcbbc422ff29",
+      "name": "resize_image4"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        752
+      ],
+      "id": "e9a9f310-3d55-4493-bed7-1606e0fb85b2",
+      "name": "gemini-2.5-flash4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "78Ua8CPoPmRPaCQc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [\n      { \"text\": {{ JSON.stringify($json.prompt) }} },\n      {\n        \"inline_data\": {\n          \"mime_type\": \"image/png\",\n          \"data\": \"{{ $node['convert_product_to_base1'].json.data }}\"\n        }\n      }\n    ]\n  }]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        512
+      ],
+      "id": "b6220d33-efcf-46fc-a066-0975dd1034c9",
+      "name": "generate_ad_prompts4",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 3,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "78Ua8CPoPmRPaCQc",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"product_name\": \"={{ $('Webhook4').item.json.body.productName }}\",\n  \"description\": \"={{ $('Webhook4').item.json.body.description || '' }}\",\n  \"runId\": \"={{ $('Webhook4').item.json.body.runId || $execution.id }}\",\n  \"userId\": \"={{ $('Webhook4').item.json.body.userId || '' }}\",\n  \"timestamp\": \"={{ $now.toFormat('yyyy-MM-dd_HHmmss') }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        208
+      ],
+      "id": "328de834-519a-443f-9f63-3fba412ca7f4",
+      "name": "Edit Fields9"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        880
+      ],
+      "id": "20ecbd05-2298-4954-a4e9-5d84e8c022e6",
+      "name": "Extract from File4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You will be given text containing 3 UGC video scripts. Each script has a VEO_PROMPT field.\n\nExtract ONLY the VEO_PROMPT content from each script (the paragraph after \"VEO_PROMPT:\").\nReturn them as an array of strings. Each string should be the complete Veo prompt paragraph only — nothing else.\nDo NOT include the word \"VEO_PROMPT\" in the output. Just the prompt text.\n\n---\n{{ $json.candidates[0].content.parts[0].text }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1664,
+        512
+      ],
+      "id": "64007246-c91b-48e1-84c7-7d7ae0ed1b02",
+      "name": "extract_prompts4"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2336,
+        512
+      ],
+      "id": "aabd21a6-a2ef-40ed-b677-5bba026cbb0a",
+      "name": "Limit4"
+    },
+    {
+      "parameters": {
+        "content": "## Overview & Setup\nhttps://www.reddit.com/r/n8n/comments/1o39gpf/i_built_a_ugc_video_ad_generator_that_analyzes/?share_id=k09KivK10hvwcv8ePoq66&utm_content=1&utm_medium=ios_app&utm_name=ioscss&utm_source=share&utm_term=3\n\nThis n8n template demonstrates how to automatically generate authentic User-Generated Content (UGC) style marketing videos for eCommerce products using AI. Simply upload a product image, and the workflow creates realistic influencer-style video ads complete with scripts, personas, and video generation.\n\n## Use cases\n* Generate multiple UGC video variations for A/B testing\n* Create authentic-looking product demonstrations for social media\n* Produce influencer-style content without hiring creators\n* Quickly test different marketing angles for new products\n* Scale video content creation for eCommerce catalogs\n\n## Good to know\n* Veo 3.1 video generation takes approximately 2-3 minutes per 8-second video\n* Each video generation costs approximately $0.50-1.00 USD (check OpenAI pricing for current rates)\n* The workflow generates multiple video variations from a single product image\n* Videos are automatically uploaded to Google Drive upon completion\n* Generated videos are in 720x1080 format optimized for social media\n\n## How it works\n1. **Product Analysis**: Google Gemini API analyzes the uploaded product image to understand its features, benefits, and target audience\n2. **Persona Creation**: The system generates a detailed profile of the ideal influencer/creator who would authentically promote this product\n3. **Script Generation**: Gemini 2.5 Pro creates authentic UGC video scripts (8 seconds) with frame-by-frame breakdowns, natural dialogue, and camera movements\n4. **Frame Generation**: For each script, Gemini generates a custom first frame that adapts the product image to match UGC aesthetic and aspect ratio\n5. **Video Production**: Veo 3.1 API generates the actual video using the script and custom first frame as reference\n6. **Status Monitoring**: The workflow polls the video generation status every 15 seconds until completion\n7. **Upload & Storage**: Completed videos are automatically uploaded to Google Drive with organized naming\n\n## How to use\n1. Upload your product image (works best with clean product shots on white/neutral backgrounds) \n2. Enter the product name\n3. Wait for the workflow to complete\n5. Find your generated UGC videos in the specified Google Drive folder\n\n\n## Requirements\n* **Google Gemini* account with Veo3.1 access for video generation and GPT-4 Vision\n* **Google Gemini API** account for script generation and image adaptation\n* **Google Drive** account for video storage\n* Sufficient API credits for video generation (budget accordingly)\n\n## Customizing this workflow\n* Adjust the **video duration** in the generate_video node (currently set to 8 seconds)\n* Modify the **persona prompt** in analyze_product node to target different audience demographics\n* Change the **script style** in set_build_video_prompts node for different UGC aesthetics (excited discovery, casual recommendation, etc.)\n* Update the **Google Drive folder** in upload_video node to organize videos by campaign\n* Add **additional processing** nodes for video editing, subtitle generation, or thumbnail creation\n* Modify the **aspect ratio** in resize_image node for different platforms (1:1 for Instagram feed, 16:9 for YouTube, etc.)",
+        "height": 1600,
+        "width": 560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "0e1c2bca-91a5-423e-829f-d86f0d251496",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "## Veo 3.1 UGC eCommerce Video Generator\n\n1. Trigger by uploading a simple product photo and a name of your product to start the workflow. \n2. Uses Google Gemini API to analyze the image and create a profile for the ideal influencer to promote this e-commerce product.\n3. Then the system uses Gemini 2.5 Pro to take that product photo and the profile of the influencer to write UGC ad scripts.\n",
+        "height": 1936,
+        "width": 4112,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "1de6c8a9-b6b5-4e59-99f1-858b67b69cad",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ugc-upload",
+        "options": {
+          "allowedOrigins": "*",
+          "responseData": "={ \"status\": \"processing\", \"runId\": \"{{ $execution.id }}\", \"message\": \"Video generation started. It will take around 3 minutes.\" }"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        864,
+        208
+      ],
+      "id": "f8df137e-39b1-4404-a664-0f4b317341c6",
+      "name": "Webhook4",
+      "webhookId": "d1149afb-c8e2-4149-9ff7-59b32eb73fac"
+    },
+    {
+      "parameters": {
+        "content": "## ⚠️ Security & Improvement Notes\n\n**Fixed in this version:**\n- ✅ Removed 3x hardcoded API keys (were exposed in plain text)\n- ✅ Renamed misleading 'Nano Banana' nodes to reflect actual Veo 3.1 usage\n- ✅ Dynamic filename for Drive uploads (includes product name + timestamp)\n- ✅ Removed 3 duplicate Google Drive permission nodes (Make File Public4, HTTP Request5, Code in JavaScript5) — Share file3 handles this already\n- ✅ Added retryOnFail to video generation and polling nodes\n\n**Manual actions still needed:**\n- 🔐 Replace hardcoded Authorization header in Download Generated Video with the Google credential\n- 📁 Set your target Google Drive folder in 'Upload Video to Google Drive'\n- 🌐 Update the backend URL in HTTP Request4 (currently hardcoded to 100.92.253.62)\n- ⏱️ Consider making Wait times configurable via workflow variables",
+        "height": 600,
+        "width": 520,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        528
+      ],
+      "id": "af227745-1874-4162-8ade-12fe35fb2038",
+      "name": "Improvement Notes"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "=ugc",
+        "fileName": "=ugc-videos/{{ $('Edit Fields9').item.json.product_name.replace(/ /g, '-').toLowerCase() }}_{{ $('Edit Fields9').item.json.timestamp }}_v{{ $itemIndex + 1 }}.mp4",
+        "additionalFields": {
+          "acl": "public-read"
+        }
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        2128,
+        1312
+      ],
+      "id": "fca5d5c0-98ab-4295-bca2-6939a06d3ca1",
+      "name": "Upload to Cloudflare R2",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "maxTries": 3,
+      "credentials": {
+        "s3": {
+          "id": "AVpZ5bJ03IGYCxNv",
+          "name": "S3 account"
+        }
+      },
+      "notes": "Credential setup: In n8n, create S3 credential with endpoint=https://<ACCOUNT_ID>.r2.cloudflarestorage.com, region=auto, access key = R2 Access Key ID, secret = R2 Secret Key"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"status\": true,\n  \"videoKey\": \"ugc-videos/{{ $('Edit Fields9').item.json.product_name.replace(/ /g, '-').toLowerCase() }}_{{ $('Edit Fields9').item.json.timestamp }}_v{{ $itemIndex + 1 }}.mp4\",\n  \"publicUrl\": \"https://nishit.site/ugc-videos/{{ $('Edit Fields9').item.json.product_name.replace(/ /g, '-').toLowerCase() }}_{{ $('Edit Fields9').item.json.timestamp }}_v{{ $itemIndex + 1 }}.mp4\",\n  \"previewUrl\": \"https://nishit.site/ugc-videos/{{ $('Edit Fields9').item.json.product_name.replace(/ /g, '-').toLowerCase() }}_{{ $('Edit Fields9').item.json.timestamp }}_v{{ $itemIndex + 1 }}.mp4\",\n  \"downloadUrl\": \"https://nishit.site/ugc-videos/{{ $('Edit Fields9').item.json.product_name.replace(/ /g, '-').toLowerCase() }}_{{ $('Edit Fields9').item.json.timestamp }}_v{{ $itemIndex + 1 }}.mp4?download=1\",\n  \"productName\": \"{{ $('Edit Fields9').item.json.product_name }}\",\n  \"generatedAt\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2880,
+        1232
+      ],
+      "id": "20fb4091-ed0e-4bef-8e3b-a78f5fbd01d7",
+      "name": "Build R2 Public URL"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://host.docker.internal:3001/api/brand-monitor/ugc/callback",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": true,\n  \"runId\": \"{{ $('Edit Fields9').item.json.runId }}\",\n  \"userId\": \"{{ $('Edit Fields9').item.json.userId }}\",\n  \"productName\": \"{{ $('Edit Fields9').item.json.product_name }}\",\n  \"language\": \"{{ $('Language & Region Config').item.json.language || 'en' }}\",\n  \"variant\": {\n    \"index\": {{ $itemIndex + 1 }},\n    \"videoUrl\": \"{{ $json.publicUrl }}\",\n    \"downloadUrl\": \"{{ $json.downloadUrl }}\",\n    \"videoKey\": \"{{ $json.videoKey }}\"\n  },\n  \"generatedAt\": \"{{ $now.toISO() }}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3104,
+        1184
+      ],
+      "id": "016cba4a-6c2f-4c89-9c7d-123a466b84fe",
+      "name": "Notify Backend (Website)",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.BACKEND_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": false,\n  \"error\": \"{{ $json.message || 'Unknown error in UGC workflow' }}\",\n  \"failedNode\": \"{{ $runIndex }}\",\n  \"productName\": \"{{ $('Edit Fields9').item.json.product_name }}\",\n  \"timestamp\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3680,
+        1776
+      ],
+      "id": "846f46e8-167e-4c2c-a66d-8d41012a5a27",
+      "name": "Error Handler - Notify Backend"
+    },
+    {
+      "parameters": {
+        "content": "## ☁️ Cloudflare R2 Setup\n\n**1. Create R2 Credential in n8n:**\n- Go to Credentials → New → S3\n- **Endpoint:** `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`\n- **Region:** `auto`\n- **Access Key ID:** (from R2 API Tokens)\n- **Secret Access Key:** (from R2 API Tokens)\n- **Force Path Style:** ✅ Enable\n\n**2. Set Workflow Variables** (Settings → Variables):\n```\nR2_BUCKET_NAME        = your-bucket-name\nR2_PUBLIC_BASE_URL    = https://pub-xxx.r2.dev  (or custom domain)\nBACKEND_WEBHOOK_URL   = https://yoursite.com/api/ugc-done\nWEBHOOK_SECRET       = your-secret-key\n```\n\n**3. Enable Public Access on R2 Bucket:**\n- Cloudflare Dashboard → R2 → Bucket → Settings\n- Enable 'Public Access' or connect custom domain\n\n**Video URL on your site:**\n```\nhttps://your-r2-domain.com/ugc-videos/product-name_2025-01-01_120000.mp4\n```\nThis URL works for both `<video>` preview and direct download.",
+        "height": 560,
+        "width": 540,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        2192
+      ],
+      "id": "33e3c8a9-d2b2-4ebb-b890-e20b7c433626",
+      "name": "R2 Setup Instructions"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1744,
+        208
+      ],
+      "id": "5d1c9979-d5e9-4145-a30a-94b83a940e70",
+      "name": "Rate Limit Buffer (5s)",
+      "webhookId": "fix-rate-limit-001"
+    },
+    {
+      "parameters": {
+        "content": "## 🔧 Rate Limit Fix (Analyze Image Node)\n\n**Root Causes Fixed:**\n\n**1. Wrong model for free-tier quota**\n- Was: `gemini-2.5-pro` (15 RPM free tier)\n- Now: `gemini-2.5-flash` (150 RPM free tier — 10× more quota)\n- Flash is also faster and cheaper with nearly identical output quality for persona generation\n\n**2. Base64 image dumped in text prompt**\n- Was: `Product Image: {{ $('convert_product_to_base1').item.json.data }}` in the text field\n- This sent the full image as raw base64 text tokens = ~50,000+ wasted tokens!\n- Now: Node reads binary image via `binaryPropertyName: data` (correct way)\n\n**3. Retry had no backoff**\n- Was: `retryOnFail: true` but `waitBetweenTries: null` → instant retries hitting rate limit repeatedly\n- Now: 60s backoff between retries (aligns with Gemini's 1-min RPM window)\n\n**4. All 3 Gemini nodes switched to Flash:**\n- `Analyze an image4`\n- `generate_ad_prompts4` (HTTP endpoint updated)\n- `gemini-2.5-flash4` (LLM sub-node for extract_prompts)\n\n**If still hitting limits:**\n- Go to Google AI Studio → Check quota usage\n- Consider upgrading to Gemini API paid tier ($0.075/1M tokens for Flash)",
+        "height": 680,
+        "width": 540,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        1760
+      ],
+      "id": "580f5a33-d1ac-4608-b206-8b000cdaf867",
+      "name": "Rate Limit Fix Notes"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"veoPrompt\": {{ JSON.stringify($('Limit4').item.json.prompt) }},\n  \"negativePrompt\": \"abrupt cut, mid-sentence ending, incomplete action, frozen frame, video loop, text overlays, subtitles, logo, watermark, jump cut at end, rushed ending\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2544,
+        848
+      ],
+      "id": "da5ab44d-c86c-4892-9568-4cfb8a6f853d",
+      "name": "Compile Veo Prompt"
+    },
+    {
+      "parameters": {
+        "content": "## 🎬 8-Second Video Quality Fixes\n\n**Why videos felt abrupt — 5 root causes fixed:**\n\n**1. Script was written for 12 seconds**\nGemini was generating 12-second scripts but Veo hard-cuts at 8s.\n→ Fixed: Script prompt rebuilt specifically for 8-second structure with intentional endings.\n\n**2. No `durationSeconds` in Veo API call**\nMissing parameter = Veo picks its own duration (often 5-6s).\n→ Fixed: `durationSeconds: 8` now explicitly set.\n\n**3. No ending instruction in Veo prompt**\nVeo didn't know the video should conclude — it just stopped.\n→ Fixed: Every VEO_PROMPT now ends with \"Video ends with [specific action] — natural conclusion, not a cut.\"\n\n**4. No `negativePrompt`**\nNothing blocking abrupt cuts, frozen frames, or mid-action stops.\n→ Fixed: negativePrompt blocks abrupt endings, mid-sentence cuts, frozen frames.\n\n**5. No native audio**\nWithout audio, cuts feel even more jarring (no fade, no natural sound end).\n→ Fixed: `generateAudio: true` — Veo now generates ambient sound + dialogue that naturally trails off.\n\n**6. Verbose script sent to Veo (not a Veo prompt)**\nThe full second-by-second breakdown was sent raw to Veo — it's meant for humans, not the model.\n→ Fixed: Gemini now writes a dedicated `VEO_PROMPT` field per script, which is the only thing sent to Veo.\n\n**The 8-second ending techniques now used:**\n- Slow camera pull-back on satisfied expression\n- Creator holds product toward lens → nods → lowers phone  \n- Product hero close-up with blurred background\n- Natural laugh/reaction → phone drops naturally",
+        "height": 720,
+        "width": 560,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        32,
+        1648
+      ],
+      "id": "a8fdaca7-2d74-405c-8cad-fa2365da6f25",
+      "name": "8-Second Fix Notes"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"product_name\": \"{{ $('Edit Fields9').item.json.product_name }}\",\n  \"language\": \"{{ ($('Webhook4').item.json.body.language || 'en').toString().trim().toLowerCase() }}\",\n  \"language_instruction\": \"{{ \n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'hi') ? 'Write in Hindi-English mix (Hinglish). Use conversational Hindi phrases naturally. Example dialogue style: \\'Yaar, ye product literally best hai\\' — casual, warm, relatable for Indian urban audience.' :\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'pa') ? 'Write in Punjabi-English mix. Use warm Punjabi expressions naturally. Example: \\'Oye, eh product te kamaal da hai\\' — energetic, joyful tone for Punjabi audience.' :\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'ta') ? 'Write in Tamil-English mix. Use casual Tamil expressions. Example: \\'Machan, ithu super product da\\' — friendly tone for Tamil audience.' :\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'te') ? 'Write in Telugu-English mix. Use casual Telugu expressions naturally. Warm and relatable for Telugu audience.' :\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'mr') ? 'Write in Marathi-English mix. Use casual Marathi expressions. Example: \\'Bhai, ha product ekdum bhari ahe\\' — energetic Maharashtrian tone.' :\n    'Write in clear, natural English. American/global UGC creator style.'\n  }}\",\n  \"persona_location_hint\": \"{{\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'hi') ? 'A trendy urban neighbourhood in Delhi, Mumbai, or Bangalore. Indian creator aesthetic — kurta or casual western wear, real Indian home or cafe background.' :\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'pa') ? 'Punjab, India — Amritsar, Ludhiana, or Chandigarh. Bright clothing, warm family home or street background.' :\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'ta') ? 'Chennai or Coimbatore. South Indian creator aesthetic, clean home or local coffee shop background.' :\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'te') ? 'Hyderabad. Telugu creator vibe — modern flat or local street setting.' :\n    (($('Webhook4').item.json.body.language || '').toString().trim().toLowerCase() === 'mr') ? 'Mumbai or Pune. Marathi creator aesthetic, urban home or street background.' :\n    'Western creator. Modern apartment, coffee shop, or outdoor setting.'\n  }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1904,
+        208
+      ],
+      "id": "72def984-8ab8-4252-a669-a3a8dd01e90a",
+      "name": "Language & Region Config"
+    },
+    {
+      "parameters": {
+        "content": "## 🌐 Language / Regional Support\n**Webhook body parameters:**\n```json\n{\n  \"productName\": \"Nike Air Max\",\n  \"language\": \"hi\",\n  \"extendVideo\": false\n}\n```\n\n**Supported language codes:**\n- `en` — English (default)\n- `hi` — Hinglish (Hindi + English mix)\n- `pa` — Punjabi-English mix\n- `ta` — Tamil-English mix\n- `te` — Telugu-English mix\n- `mr` — Marathi-English mix\n\nEach language auto-configures:\n1. Creator persona location (Delhi/Mumbai/Chennai etc.)\n2. Dialogue style in script generation\n3. Regional creator aesthetic in Veo prompt\n\n**To add more languages:**\nEdit the `Language & Region Config` node expressions.",
+        "height": 440,
+        "width": 480,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        1776
+      ],
+      "id": "8dca05ad-5219-4e48-9ced-f76641a9be44",
+      "name": "Language Support Notes"
+    },
+    {
+      "parameters": {
+        "content": "## 📊 3-Variant Dashboard\n**How it works:**\n- `Limit4` now passes all 3 scripts through the pipeline\n- Each script generates its own video independently\n- Each video gets its own R2 key:\n  `ugc-videos/product-name_timestamp.mp4`\n  `ugc-videos/product-name_timestamp_captioned.mp4`\n  `ugc-videos/product-name_timestamp_15s.mp4`\n- Notify Backend fires once per variant (3 times total)\n- Your website receives 3 webhook POSTs with `variant.index: 1/2/3`\n\n**Dashboard payload per variant:**\n```json\n{\n  \"variant\": {\n    \"index\": 1,\n    \"videoUrl\": \"https://r2.../video.mp4\",\n    \"captionedUrl\": \"https://r2.../video_captioned.mp4\",\n    \"extendedUrl\": \"https://r2.../video_15s.mp4\"\n  }\n}\n```\n\nYour frontend can render all 3 videos side-by-side with a Pick Winner button.",
+        "height": 460,
+        "width": 500,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3328,
+        2256
+      ],
+      "id": "01b95031-3ed6-4f85-a509-517b64fe9979",
+      "name": "3-Variant Dashboard Notes"
+    },
+    {
+      "parameters": {
+        "content": "## ✅ v7 — Native Google Gemini Video Nodes\n\n**Architecture change: No more HTTP poll loops!**\n\nOLD (v6): Generate (HTTP) → 3min wait → Poll loop → IF done → Download (HTTP)\nNEW (v7): Generate Video (Veo 3.1) [native] → binary returned directly ✅\n\n**Main video pipeline:**\nCompile Veo Prompt\n  → Generate Video (Veo 3.1)  [resource=video, operation=generate, returnAs=video]\n  → Build R2 File Key + Extend Video? (parallel)\n\n**Extension pipeline:**\nExtend Video? (optional)\n  TRUE  → Extend Video (Veo 3.1)  [same native node, continuation prompt]\n           → Upload Extended Video to R2\n  FALSE → skip\n\n**Nodes removed (17):**\n- Generate Video with Veo 3.1 (HTTP)\n- delay5, Poll Veo 3.1 Video Status, Wait8\n- Is Veo Done?, RAI Blocked? (skip), Skip RAI Blocked Video\n- Wait 20s Then Retry, Download Video from Veo\n- Extend Video +7s (Veo) (HTTP), Wait for Extension\n- Poll Extension Status, Is Extension Done?\n- Ext: Done but RAI? or Still Polling?\n- Skip RAI Blocked Extension, Wait 20s Retry Extension\n- Download Extended Video\n\n**Native node handles:**\n- API authentication (same googlePalmApi credential)\n- Polling internally (no wait nodes needed)\n- RAI errors (surfaces as n8n node error — use error handler)\n- Binary download (returnAs=video gives data directly)\n\n**All previous fixes still in place:**\n- extendVideo string fix\n- Build R2 File Key preserves binary\n- R2 cross-branch filename fix\n- personGeneration: allow_adult ✅ (native node supports it)",
+        "height": 560,
+        "width": 520,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        1136
+      ],
+      "id": "a68fabde-1d4f-4da1-abd0-2f26a9532614",
+      "name": "Fix Log v7"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process ALL items — loop over all 3\nconst results = [];\n\nfor (const item of $input.all()) {\n  const promptText = item.json.veoPrompt;\n  const negativePrompt = item.json.negativePrompt || '';\n\n  const requestBody = {\n    instances: [{ prompt: promptText }],\n    parameters: {\n      aspectRatio: \"9:16\",\n      sampleCount: 1,\n      durationSeconds: \"8\",\n      personGeneration: \"allow_all\",\n      addWatermark: false,\n      includeRaiReason: true,\n      generateAudio: true,\n      resolution: \"720p\",\n      negativePrompt: negativePrompt\n    }\n  };\n\n  results.push({ json: { veoRequestBody: requestBody, veoPrompt: promptText } });\n}\n\nreturn results;"
+      },
+      "id": "3e5355f6-1d83-4912-b31a-dc3a9a59197e",
+      "name": "Build Vertex Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2864,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://us-central1-aiplatform.googleapis.com/v1/projects/gen-lang-client-0357406433/locations/us-central1/publishers/google/models/veo-3.0-generate-001:predictLongRunning",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.veoRequestBody }}",
+        "options": {}
+      },
+      "id": "d4a20a09-e2e4-4287-bfe2-b6ecc5bb750c",
+      "name": "Generate Video (Vertex AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3136,
+        848
+      ],
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "vEMmIi9e66WxuGti",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "minutes"
+      },
+      "id": "bef4a338-0eac-4a67-98aa-7f10092f8acd",
+      "name": "Wait 3min (Vertex generating)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3344,
+        848
+      ],
+      "webhookId": "ff4fe341-dbba-47dc-ae68-cce8d2f7e9a8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://us-central1-aiplatform.googleapis.com/v1/projects/gen-lang-client-0357406433/locations/us-central1/publishers/google/models/veo-3.0-generate-001:fetchPredictOperation",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"operationName\": \"{{ $('Generate Video (Vertex AI)').item.json.name }}\"\n}",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "e4fb4cb4-8ac1-4b9b-8935-7d212fb28e43",
+      "name": "Fetch Video Result (Vertex AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3584,
+        848
+      ],
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "vEMmIi9e66WxuGti",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "vd-001",
+              "leftValue": "={{ $json.done }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d4e4fb6c-c7a3-4cb5-a3bc-5414072079bc",
+      "name": "Is Vertex Done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3824,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "id": "3b8780f2-2099-4a0d-94ae-91e3adcb9540",
+      "name": "Wait 20s Then Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3824,
+        1056
+      ],
+      "webhookId": "da81bdc2-c506-4251-bf4d-2fd7b291473e"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "response.videos[0].bytesBase64Encoded",
+        "options": {
+          "fileName": "=video.mp4",
+          "mimeType": "video/mp4"
+        }
+      },
+      "id": "eb94fb32-06a0-48a5-af92-6db2ef763d56",
+      "name": "Convert Video to Binary",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        4128,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ✅ Vertex AI Veo Setup\n\n**Required n8n Variables:**\n- `GCP_PROJECT_ID` — your Google Cloud project ID\n- `R2_PUBLIC_BASE_URL` — https://nishit.site\n- `R2_BUCKET_NAME` — your R2 bucket name\n- `BACKEND_WEBHOOK_URL` — your callback URL\n\n**Required Credential:**\n- Google OAuth2 — scope: `https://www.googleapis.com/auth/cloud-platform`\n\n**Advantages over Gemini API:**\n- ✅ `personGeneration: allow_all` works\n- ✅ No RAI filter blocks\n- ✅ `generateAudio: true` works\n- ✅ Full quality `veo-3.0-generate-001`",
+        "height": 200,
+        "width": 640,
+        "color": 4
+      },
+      "id": "cdaeb100-c3e5-4c14-9b42-e697c2a0a4c8",
+      "name": "Vertex AI Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2864,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "hv-001",
+              "leftValue": "={{ ($json.response?.videos?.length || 0) > 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "273d372a-4f69-4b5e-86f6-6161c9cc1ac6",
+      "name": "Has Video or RAI Block?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4032,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.BACKEND_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": false,\n  \"runId\": \"{{ $('Edit Fields9').item.json.runId }}\",\n  \"userId\": \"{{ $('Edit Fields9').item.json.userId }}\",\n  \"productName\": \"{{ $('Edit Fields9').item.json.product_name }}\",\n  \"language\": \"{{ $('Language & Region Config').item.json.language || 'en' }}\",\n  \"variant\": {\n    \"index\": {{ $runIndex + 1 }},\n    \"videoUrl\": null,\n    \"error\": \"RAI filter blocked this video\"\n  },\n  \"generatedAt\": \"{{ $now.toISO() }}\"\n}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "87c8323c-76c9-4e48-80a1-9315a6c6df6c",
+      "name": "Skip RAI Blocked (Vertex)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4448,
+        976
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Analyze an image4": {
+      "main": [
+        [
+          {
+            "node": "set_model_details4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_model_details4": {
+      "main": [
+        [
+          {
+            "node": "set_build_video_prompts4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "generate_ad_prompts4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_build_video_prompts4": {
+      "main": [
+        [
+          {
+            "node": "generate_ad_prompts4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert_product_to_base1": {
+      "main": [
+        [
+          {
+            "node": "convert_product_to_image4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert_product_to_image4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prompts-parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "extract_prompts4",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split_prompts4": {
+      "main": [
+        [
+          {
+            "node": "Limit4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate_frame4": {
+      "main": [
+        [
+          {
+            "node": "set_frame_result4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_frame_result4": {
+      "main": [
+        [
+          {
+            "node": "get_frame_image4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_frame_image4": {
+      "main": [
+        [
+          {
+            "node": "resize_image4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "resize_image4": {
+      "main": [
+        [
+          {
+            "node": "Extract from File4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate_ad_prompts4": {
+      "main": [
+        [
+          {
+            "node": "extract_prompts4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields9": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Buffer (5s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File4": {
+      "main": [
+        [
+          {
+            "node": "Compile Veo Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract_prompts4": {
+      "main": [
+        [
+          {
+            "node": "split_prompts4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit4": {
+      "main": [
+        [
+          {
+            "node": "generate_frame4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook4": {
+      "main": [
+        [
+          {
+            "node": "convert_product_to_base1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Cloudflare R2": {
+      "main": [
+        [
+          {
+            "node": "Build R2 Public URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build R2 Public URL": {
+      "main": [
+        [
+          {
+            "node": "Notify Backend (Website)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gemini-2.5-flash4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "prompts-parser4",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "extract_prompts4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Buffer (5s)": {
+      "main": [
+        [
+          {
+            "node": "Language & Region Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compile Veo Prompt": {
+      "main": [
+        [
+          {
+            "node": "Build Vertex Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Language & Region Config": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Vertex Request": {
+      "main": [
+        [
+          {
+            "node": "Generate Video (Vertex AI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Video (Vertex AI)": {
+      "main": [
+        [
+          {
+            "node": "Wait 3min (Vertex generating)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3min (Vertex generating)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Video Result (Vertex AI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Video Result (Vertex AI)": {
+      "main": [
+        [
+          {
+            "node": "Is Vertex Done?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Vertex Done?": {
+      "main": [
+        [
+          {
+            "node": "Has Video or RAI Block?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 20s Then Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 20s Then Retry": {
+      "main": [
+        [
+          {
+            "node": "Fetch Video Result (Vertex AI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Video to Binary": {
+      "main": [
+        [
+          {
+            "node": "Upload to Cloudflare R2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Video or RAI Block?": {
+      "main": [
+        [
+          {
+            "node": "Convert Video to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "577c96f5-fb0a-4044-8a00-8687e934a0ec",
+  "meta": {
+    "instanceId": "85e4aea19de2d285c91b909a8dcd3d895ad511f5c888998471db1734c996c1ee"
+  },
+  "id": "OR3DjdpAhs217SmI",
+  "tags": []
+}
