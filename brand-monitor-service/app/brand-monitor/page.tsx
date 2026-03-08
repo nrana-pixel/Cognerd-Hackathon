@@ -15,13 +15,11 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { FilesTabPrefill } from "@/types/files";
 import { assignUrlToCompetitor, deriveCompetitorNameFromUrl, validateCompetitorUrl } from '@/lib/brand-monitor-utils';
 import { IdentifiedCompetitor } from '@/lib/brand-monitor-reducer';
 import { TipsCarousel, INTELLIWRITE_TIPS } from '@/components/brand-monitor/tips-carousel';
 
 const BrandMonitor = dynamic(() => import("@/components/brand-monitor/brand-monitor").then(m => m.BrandMonitor), { ssr: false });
-const FilesTab = dynamic(() => import("@/components/brand-monitor/files-tab").then(m => m.FilesTab), { ssr: false });
 const SEOBacklinksTab = dynamic(() => import("@/components/brand-monitor/seo-backlinks-tab").then(m => m.SEOBacklinksTab), { ssr: false });
 
 /**
@@ -40,15 +38,11 @@ const SEOBacklinksTab = dynamic(() => import("@/components/brand-monitor/seo-bac
 /* --------------------- BrandMonitorContent (unchanged logic) --------------------- */
 function BrandMonitorContent({
   session,
-  onOpenAeoForUrl,
-  onOpenFilesForUrl,
   prefillBrand,
   initialAnalysisId,
   forceNew
 }: {
   session: any;
-  onOpenAeoForUrl: (url: string, customerName?: string, competitors?: any[]) => void;
-  onOpenFilesForUrl: (payload: FilesTabPrefill) => void;
   prefillBrand?: { url: string; customerName: string } | null;
   initialAnalysisId?: string | null;
   forceNew?: boolean;
@@ -121,215 +115,6 @@ function BrandMonitorContent({
 }
 
 /* --------------------- Tabbed Page wrapper --------------------- */
-
-function AeoReportTab({ prefill, onOpenBrandForUrl, onOpenFilesForUrl }: { prefill: { url: string; customerName: string; competitors?: any[] } | null; onOpenBrandForUrl: (url: string, customerName?: string, competitors?: any[]) => void; onOpenFilesForUrl: (payload: FilesTabPrefill) => void; }) {
-  const [customerName, setCustomerName] = useState('');
-  const [url, setUrl] = useState('');
-  const [competitors, setCompetitors] = useState<any[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [reportData, setReportData] = useState<{ htmlContent: string; customerName: string; reportType: string; generatedAt: string; read: boolean } | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [generationWarning, setGenerationWarning] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [reports, setReports] = useState<Array<{ id: string; customerName: string; url: string; createdAt: string }>>([]);
-  const [loadingReports, setLoadingReports] = useState(false);
-  const [handledPrefillKey, setHandledPrefillKey] = useState<string | null>(null);
-  const [prefillLookupState, setPrefillLookupState] = useState<'idle' | 'looking' | 'no-match'>('idle');
-
-  const fetchReports = async () => {
-    setLoadingReports(true);
-    try {
-      const res = await fetch('/api/aeo-report/list');
-      const data = await res.json();
-      if (res.ok && Array.isArray(data.reports)) {
-        setReports(data.reports);
-      }
-    } catch (e) {
-      // silent fail
-    } finally {
-      setLoadingReports(false);
-    }
-  };
-
-  useEffect(() => { fetchReports(); }, []);
-
-  // Helper: normalize URL for robust matching (ignores trailing slash and lowercases hostname)
-  const normalizeUrl = (u?: string | null) => {
-    if (!u) return '';
-    try {
-      const urlObj = new URL(u);
-      // lowercase hostname
-      urlObj.hostname = urlObj.hostname.toLowerCase();
-      let normalized = urlObj.toString();
-      // remove trailing slash (but keep single slash after origin)
-      if (normalized.endsWith('/') && !/^[a-zA-Z]+:\/\/$/.test(normalized)) {
-        normalized = normalized.replace(/\/+$/, '');
-      }
-      return normalized;
-    } catch {
-      // fallback: trim, remove trailing slashes
-      return String(u).trim().replace(/\/+$/, '');
-    }
-  };
-
-  // prefill from cross-tab trigger
-  useEffect(() => {
-    if (!prefill) return;
-
-    // Set inputs and show lookup state immediately
-    setCustomerName(prefill.customerName || 'autouser');
-    setUrl(prefill.url || '');
-    if (prefill.competitors) setCompetitors(prefill.competitors);
-    setPrefillLookupState('looking');
-
-    // Wait until reports are fetched
-    if (loadingReports) return;
-
-    // Once loaded, decide using a key that includes current reports length to avoid stale skips
-    const decisionKey = `${prefill.url || ''}::${reports.length}`;
-    if (handledPrefillKey === decisionKey) return;
-
-    if (prefill.url) {
-      const prefillNorm = normalizeUrl(prefill.url);
-      const sameUrlReports = reports.filter(r => normalizeUrl(r.url) === prefillNorm);
-      const match = sameUrlReports.length > 0 ? sameUrlReports[0] : null;
-
-      if (match) {
-        handleOpenReport(match.id);
-        setPrefillLookupState('idle');
-      } else {
-        setPrefillLookupState('no-match');
-      }
-      setHandledPrefillKey(decisionKey);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefill, reports, loadingReports]);
-
-  const clearGenerationTimeout = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    return () => clearGenerationTimeout();
-  }, []);
-
-  const startGenerationTimeout = () => {
-    clearGenerationTimeout();
-    timeoutRef.current = setTimeout(() => {
-      setIsGenerating(false);
-      setGenerationWarning('This is taking longer than expected. Please try again or contact support.');
-    }, 20 * 60 * 1000);
-  };
-
-  const generateReport = async () => {
-    if (!customerName.trim() || !url.trim()) return;
-    setGenerationWarning(null);
-    setIsGenerating(true);
-    startGenerationTimeout();
-    try {
-      const res = await fetch('/api/aeo-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerName: customerName.trim(), url: url.trim(), reportType: 'combined', competitors })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate report');
-      setReportData(data);
-      fetchReports();
-      clearGenerationTimeout();
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleOpenReport = async (id: string) => {
-    try {
-      const res = await fetch(`/api/aeo-report/view?id=${encodeURIComponent(id)}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to load report');
-      setReportData({ htmlContent: data.html, customerName: data.customerName, reportType: 'combined-ai', generatedAt: data.createdAt, read: data.read });
-      setSidebarOpen(false);
-    } catch (e) {
-      // no-op
-    }
-  };
-
-  const downloadPDF = async () => {
-    if (!reportData) return;
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    const html = `<!DOCTYPE html><html><head><title>AEO Report - ${reportData.customerName}</title>
-      <style>@page{size:A3 landscape;margin:12mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.card{page-break-inside:avoid}}</style>
-    </head><body>
-      <div class="header" style="text-align:center;margin-bottom:20px;border-bottom:2px solid #004d99;padding-bottom:10px">
-        <h1 style="margin:0">AEO Report</h1>
-        <p style="margin:6px 0 0">Customer: ${reportData.customerName} | Generated: ${new Date(reportData.generatedAt).toLocaleString()}</p>
-      </div>
-      ${reportData.htmlContent}
-    </body></html>`;
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.onload = () => { setTimeout(() => { printWindow.print(); printWindow.close(); }, 500); };
-  };
-
-  return (
-    <div className="flex h-full relative flex-col">
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-6 sm:px-8 lg:px-12 py-8 max-w-7xl mx-auto">
-          {/* Use shared Inputs/Labels/Buttons for consistency */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="space-y-2">
-              <Label htmlFor="aeoCustomer" className="text-sm font-medium">Customer Name *</Label>
-              <Input id="aeoCustomer" placeholder="Enter customer name" value={customerName} onChange={e => setCustomerName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="aeoUrl" className="text-sm font-medium">Website URL *</Label>
-              <Input id="aeoUrl" placeholder="https://example.com" value={url} onChange={e => setUrl(e.target.value)} />
-            </div>
-          </div>
-          <Button onClick={generateReport} disabled={isGenerating} className="btn-firecrawl-default h-9 px-4">
-            {isGenerating ? 'Generating...' : 'Generate Report'}
-          </Button>
-
-          {/* Lookup status messages when coming from Brand Monitor button */}
-          {!reportData && prefillLookupState === 'looking' && (
-            <div className="mt-6 text-sm text-gray-600">Looking up existing report…</div>
-          )}
-          {!reportData && prefillLookupState === 'no-match' && (
-            <div className="mt-6 text-sm text-blue-700">No matching report found for the selected URL.</div>
-          )}
-
-          {generationWarning && !reportData && (
-            <div className="mt-6 text-sm text-orange-600 bg-orange-50 border border-orange-200 rounded-md p-3">
-              {generationWarning}
-              <Button variant="ghost" size="sm" className="ml-2" onClick={() => { setGenerationWarning(null); generateReport(); }}>
-                Retry now
-              </Button>
-            </div>
-          )}
-
-
-
-          {reportData && (
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <p className="text-sm text-gray-600">Generated on {new Date(reportData.generatedAt).toLocaleString()} | Type: {reportData.reportType}</p>
-                </div>
-                <Button variant="outline" onClick={downloadPDF}>Download PDF</Button>
-              </div>
-              <div className="report-content border rounded-lg p-4 bg-white" dangerouslySetInnerHTML={{ __html: reportData.htmlContent }} />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function UGCTab({ prefill, prefillBlogId }: { prefill?: { url: string; brandName: string; description?: string; industry?: string; keywords?: string[] } | null; prefillBlogId?: string | null; }) {
   const searchParams = useSearchParams();
@@ -1035,13 +820,11 @@ function BrandMonitorPageContent() {
   const viewMode = searchParams.get("view");
   const urlFromQuery = searchParams.get("url");
 
-  // tabs: 'brand' | 'aeo' | 'files' | 'ugc' | 'backlinks'
-  const [activeTab, setActiveTab] = useState<"brand" | "aeo" | "files" | "ugc" | "backlinks">(
+  // tabs: 'brand' | 'ugc' | 'backlinks'
+  const [activeTab, setActiveTab] = useState<"brand" | "ugc" | "backlinks">(
     "brand"
   );
-  const [prefillAeo, setPrefillAeo] = useState<{ url: string; customerName: string; competitors?: any[] } | null>(null);
   const [prefillBrand, setPrefillBrand] = useState<{ url: string; customerName: string } | null>(null);
-  const [pendingFiles, setPendingFiles] = useState<FilesTabPrefill | null>(null);
   const [prefillUgc, setPrefillUgc] = useState<{ url: string; brandName: string } | null>(null);
   const [appliedBrandPrefill, setAppliedBrandPrefill] = useState<string | null>(null);
   const [currentBrand, setCurrentBrand] = useState<{ id: string; name: string; logo?: string } | null>(null);
@@ -1060,8 +843,6 @@ function BrandMonitorPageContent() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '');
-      if (hash === 'files') setActiveTab('files');
-      if (hash === 'aeo') setActiveTab('aeo');
       if (hash === 'brand') setActiveTab('brand');
       if (hash === 'ugc') setActiveTab('ugc');
       if (hash === 'backlinks') setActiveTab('backlinks');
@@ -1145,12 +926,6 @@ function BrandMonitorPageContent() {
           }, [])
           .slice(0, 8);
 
-        setPendingFiles({
-          url: brandRecord.url,
-          customerName: brandRecord.name,
-          industry: brandRecord.industry,
-          competitors: mergedCompetitors.map((c: any) => c.name), // FilesTab still expects strings
-        });
         setPrefillUgc({
           url: brandRecord.url,
           brandName: brandRecord.name,
@@ -1164,28 +939,6 @@ function BrandMonitorPageContent() {
           url: brandRecord.url,
           customerName: brandRecord.name,
         });
-        // Pass full objects to AEO prefill logic if needed, but setPrefillAeo is not called here directly.
-        // We need to store it in a way that AeoReportTab can use if we auto-switch.
-
-        // Wait, prefillAeo is local state. We only set it via handleOpenAeoForUrl.
-        // But we want to pre-populate it?
-        // Actually, AeoReportTab uses `prefill` prop.
-        // `prefillAeo` is state.
-        // If the user manually navigates, `prefillAeo` is null.
-        // If we want to support `competitors` in `AeoReportTab`, we need to update `handleOpenAeoForUrl` usage or hydration.
-
-        // Let's just update setPendingFiles to use scrapedCompetitors names as before (to avoid breaking FilesTab),
-        // BUT ALSO update `handleOpenAeoForUrl` call sites if any.
-        // But wait, hydration doesn't set `prefillAeo`.
-        // If we want `AeoReportTab` to have competitors from hydration, we need to set it.
-        // The current code doesn't set `prefillAeo` on hydration. It just sets `pendingFiles`, `prefillUgc`, `prefillBrand`.
-        // So `AeoReportTab` won't have competitors populated from brand profile unless we explicitly set it.
-
-        setPrefillAeo({
-          url: brandRecord.url,
-          customerName: brandRecord.name,
-          competitors: mergedCompetitors
-        });
 
         setAppliedBrandPrefill(brandProfileIdFromQuery);
 
@@ -1194,9 +947,7 @@ function BrandMonitorPageContent() {
           setActiveTab("ugc");
         } else if (typeof window !== 'undefined') {
           const h = window.location.hash;
-          if (h === '#files') setActiveTab("files");
-          else if (h === '#ugc') setActiveTab("ugc");
-          else if (h === '#aeo') setActiveTab("aeo");
+          if (h === '#ugc') setActiveTab("ugc");
           else setActiveTab("brand");
         } else {
           setActiveTab("brand");
@@ -1231,23 +982,6 @@ function BrandMonitorPageContent() {
     );
   }
 
-  const handleOpenAeoForUrl = (url: string, customerName?: string, competitors?: any[]) => {
-    setPrefillAeo({ url, customerName: (customerName && customerName.trim()) ? customerName : "autouser", competitors });
-    setActiveTab("aeo");
-  };
-  const handleOpenFilesForUrl = (payload: FilesTabPrefill) => {
-    if (!payload?.url) return;
-    setPendingFiles({
-      url: payload.url,
-      customerName: payload.customerName && payload.customerName.trim() ? payload.customerName : "autouser",
-      industry: payload.industry,
-      competitors: payload.competitors,
-    });
-    setActiveTab("files");
-  };
-
-  const isBrandTab = activeTab === "brand";
-
   return (
     <div className="min-h-screen bg-slate-50 relative overflow-hidden bg-grid-zinc-100">
 
@@ -1272,16 +1006,10 @@ function BrandMonitorPageContent() {
           {activeTab === "brand" && (
             <BrandMonitorContent
               session={session}
-              onOpenAeoForUrl={handleOpenAeoForUrl}
-              onOpenFilesForUrl={handleOpenFilesForUrl}
               prefillBrand={prefillBrand}
               initialAnalysisId={analysisIdFromQuery}
               forceNew={viewMode === 'new'}
             />
-          )}
-          {activeTab === "aeo" && <AeoReportTab prefill={prefillAeo} onOpenBrandForUrl={(url, customerName, competitors) => { setPrefillBrand({ url, customerName: (customerName && customerName.trim()) ? customerName : "autouser" }); setActiveTab("brand"); }} onOpenFilesForUrl={handleOpenFilesForUrl} />}
-          {activeTab === "files" && (
-            <FilesTab prefill={pendingFiles} />
           )}
           {activeTab === "ugc" && (
             <UGCTab
@@ -1313,3 +1041,4 @@ export default function BrandMonitorPage() {
     </Suspense>
   );
 }
+

@@ -11,9 +11,7 @@ import {
   Globe,
   MapPin,
   Briefcase,
-  Search,
   TrendingUp,
-  FileText,
   PenTool,
   LayoutDashboard,
   Plus
@@ -48,17 +46,8 @@ interface Analysis {
   createdAt: string;
 }
 
-interface AEOReport {
-  id: string;
-  customerName: string;
-  url: string;
-  createdAt: string;
-}
-
 interface SectionData {
-  aeoReports: AEOReport[];
   brandMonitorReports: any[];
-  geoFileReports: any[];
   blogReports: any[];
 }
 
@@ -89,9 +78,7 @@ export default function BrandProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sectionData, setSectionData] = useState<SectionData>({
-    aeoReports: [],
     brandMonitorReports: [],
-    geoFileReports: [],
     blogReports: [],
   });
   const [editFormData, setEditFormData] = useState({
@@ -162,17 +149,6 @@ export default function BrandProfilePage() {
       if (!brand) return;
 
       try {
-        // Fetch AEO
-        const aeoResponse = await fetch(
-          `/api/aeo-reports-by-customer?customerName=${encodeURIComponent(brand.name)}&t=${Date.now()}`,
-          { headers: { 'Cache-Control': 'no-cache' } }
-        );
-        let fetchedAeoReports = [];
-        if (aeoResponse.ok) {
-          const aeoData = await aeoResponse.json();
-          fetchedAeoReports = aeoData.reports || [];
-        }
-
         // Fetch Blogs
         let fetchedBlogReports = [];
         try {
@@ -217,22 +193,10 @@ export default function BrandProfilePage() {
           }
         } catch (err) { console.error(err); }
 
-        // Fetch Geo Files
-        let fetchedGeoFiles = [];
-        try {
-          const geoResponse = await fetch(`/api/geo-files/history?brand=${encodeURIComponent(brand.name)}`);
-          if (geoResponse.ok) {
-            const geoData = await geoResponse.json();
-            fetchedGeoFiles = geoData.files || [];
-          }
-        } catch (err) { console.error(err); }
-
         setSectionData(prev => ({
           ...prev,
-          aeoReports: fetchedAeoReports,
           blogReports: fetchedBlogReports,
           brandMonitorReports: fetchedBrandMonitorReports,
-          geoFileReports: fetchedGeoFiles,
         }));
       } catch (err) {
         console.error(err);
@@ -365,70 +329,6 @@ export default function BrandProfilePage() {
           <div className="text-[10px] text-slate-400 flex items-center gap-1">
             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
             {new Date(report.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-          </div>
-        </Link>
-      )
-    },
-    {
-      id: 'aeo',
-      title: 'AEO Audit',
-      description: 'Answer Engine Optimization',
-      icon: Search,
-      colorClass: 'text-purple-600 bg-purple-50 border-purple-100 hover:bg-purple-100',
-      buttonClass: 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-200',
-      link: `/aeo-report?customerName=${encodeURIComponent(brand.name)}&url=${encodeURIComponent(brand.url)}&brandId=${brand.id}&competitors=${encodeURIComponent(JSON.stringify(brand.competitors || []))}`,
-      data: sectionData.aeoReports,
-      renderItem: (report: AEOReport) => (
-        <Link
-          key={report.id}
-          href={`/aeo-report?reportId=${report.id}&brandId=${brandId}&customerName=${encodeURIComponent(report.customerName)}&url=${encodeURIComponent(report.url)}`}
-          className="group block p-4 border-b border-slate-50 hover:bg-slate-50 transition-all duration-200"
-        >
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold text-slate-900 text-sm truncate flex-1">
-              {report.customerName}
-            </span>
-            <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-purple-500 transition-colors" />
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-            <Globe className="w-3 h-3 text-slate-400" />
-            <span className="truncate max-w-[200px]">{report.url}</span>
-          </div>
-          <div className="text-[10px] text-slate-400 flex items-center gap-1">
-            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-            {new Date(report.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-          </div>
-        </Link>
-      )
-    },
-    {
-      id: 'files',
-      title: 'GEO Files',
-      description: 'Generative Engine Optimization',
-      icon: FileText,
-      colorClass: 'text-orange-600 bg-orange-50 border-orange-100 hover:bg-orange-100',
-      buttonClass: 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-200',
-      link: `/geo-files?customerName=${encodeURIComponent(brand.name)}&url=${encodeURIComponent(brand.url)}&brandId=${brand.id}`,
-      data: sectionData.geoFileReports,
-      renderItem: (file: any) => (
-        <Link
-          key={file.id}
-          href={`/geo-files?id=${file.id}&brandId=${brandId}`}
-          className="group block p-4 border-b border-slate-50 hover:bg-slate-50 transition-all duration-200"
-        >
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold text-slate-900 text-sm truncate flex-1">
-              {file.brand || 'Untitled'}
-            </span>
-            <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-orange-500 transition-colors" />
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-            <Globe className="w-3 h-3 text-slate-400" />
-            <span className="truncate max-w-[200px]">{file.url}</span>
-          </div>
-          <div className="text-[10px] text-slate-400 flex items-center gap-1">
-            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-            {new Date(file.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </div>
         </Link>
       )
